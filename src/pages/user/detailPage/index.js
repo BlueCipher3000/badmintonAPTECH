@@ -1,4 +1,6 @@
 import { useState, memo } from "react";
+import { useEffect } from "react";
+import { useParams } from "react-router-dom";
 import sp_1 from "../../../assets/user/img/products/sp-1.webp";
 import sp_2 from "../../../assets/user/img/products/sp-2.webp";
 import sp_3 from "../../../assets/user/img/products/sp-3.webp";
@@ -6,24 +8,37 @@ import { AiOutlineRight } from "react-icons/ai";
 import { Link } from "react-router-dom";
 
 const DetailPage = () => {
-  const product = {
-    name: "Vợt cầu lông VNB Carbon Training 150g chính hãng",
-    id: "VNB05750",
-    brand: "VNB",
-    status: "Còn hàng",
-    price: 680000,
-    originalPrice: 979000,
-    images: [sp_1, sp_2, sp_3, sp_1, sp_1],
-    promotions: [
-      "Tặng 2 cuốn cán vượt cầu lông VNB 001, VS002 hoặc Joto 001",
-      "Sản phẩm cam kết chính hãng",
-      "Một số sản phẩm được tặng bao nhung bảo vệ vợt",
-      "Thanh toán sau khi kiểm tra và nhận hàng",
-    ],
-  };
-
-  const [selectedImage, setSelectedImage] = useState(product.images[0]);
+  const { id } = useParams();
+  const productId = Number(id);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  
+  useEffect(() => {
+    if (!productId) {
+      console.error("Invalid product ID");
+      setLoading(false);
+      return;
+    }
+
+    fetch(`http://localhost:8000/api/products/${productId}`)
+    .then((res) => res.json())
+    .then((data) => {
+      setProduct(data);
+      setSelectedImage(data.img ? `/storage/imgproducts/${data.img}` : null);
+      setLoading(false);
+    })
+    .catch((err) => {
+      console.error("Error fetching product:", err)
+      setLoading(false);
+    });
+  }, [id]);
+
+
+
+  if (loading) return <p>Loading...</p>;
+  if (!product) return <p>Product not found</p>;
 
   return (
     <div className="detail">
@@ -43,7 +58,7 @@ const DetailPage = () => {
           <AiOutlineRight className="text-xsm mx-1" />
           <a href="#">
             <p className="text-xs text-red-500">
-              Vợt cầu lông VNB Carbon Training 150g chính hãng
+              {product.name}
             </p>
           </a>
         </div>
@@ -52,13 +67,17 @@ const DetailPage = () => {
       <div className="container flex w-full mx-auto space-x-7 py-10">
         <div className="itemRight basis-1/2 w-full">
           <div className="img w-4/5 h-3/5 float-right">
-            <img
-              className="imgMain mx-auto cursor-pointer"
-              src={selectedImage}
-              alt={`Ảnh chính của sản phẩm ${product.name}`}
-              onClick={() => setIsImageModalOpen(true)}
-            />
-            <div className="imgContainer grid grid-cols-5 gap-x-3 mx-3 mt-16">
+          {product.img ? (
+              <img
+                className="imgMain mx-auto cursor-pointer"
+                src={`http://localhost:8000/storage/imgproducts/${product.img}`}
+                alt={`Ảnh chính của sản phẩm ${product.name}`}
+                onClick={() => setIsImageModalOpen(true)}
+              />
+            ) : (
+              <p className="text-gray-400 text-center">No image available</p>
+            )}
+            {/* <div className="imgContainer grid grid-cols-5 gap-x-3 mx-3 mt-16">
               {product.images.map((image, index) => (
                 <div key={index} className="border-2 border-gray-400">
                   <img
@@ -69,7 +88,7 @@ const DetailPage = () => {
                   />
                 </div>
               ))}
-            </div>
+            </div> */}
           </div>
         </div>
         <div className="itemLeft basis-1/2 w-full">
@@ -82,35 +101,35 @@ const DetailPage = () => {
                 Mã sản phẩm:{" "}
                 <span className="text-red-500 font-medium">{product.id}</span>
               </p>
-              <p>
+              {/* <p>
                 Thương hiệu:{" "}
                 <span className="text-red-500 font-medium">
                   {product.brand}
                 </span>
-              </p>
+              </p> */}
               <p>
                 Tình trạng:{" "}
                 <span className="text-red-500 font-medium">
-                  {product.status}
+                  {product.status ? "Còn hàng" : "Hết hàng"}
                 </span>
               </p>
             </div>
             <div className="mt-5">
               <span className="text-2xl font-bold text-red-500">
-                {product.price.toLocaleString()}{" "}
+                {(product.price - (product.price * product.sale / 100)).toLocaleString()}{" "}
                 <span className="underline">đ</span>
               </span>
               <span className="text-gray-400 font-semibold ml-4">
                 Giá niêm yết:{" "}
                 <span className="line-through">
-                  {product.originalPrice.toLocaleString()} đ
+                  {product.price.toLocaleString()} đ
                 </span>
               </span>
             </div>
           </div>
           <hr className="my-5" />
 
-          <div className="endow border border-red-500 rounded-md relative p-5 mb-5">
+          {/* <div className="endow border border-red-500 rounded-md relative p-5 mb-5">
             <div className="absolute -top-5 left-5 bg-white px-3 text-red-500 font-bold text-lg">
               <i className="fa-solid fa-gift"></i> Ưu đãi
             </div>
@@ -119,7 +138,7 @@ const DetailPage = () => {
                 <li key={index}>{promo}</li>
               ))}
             </ul>
-          </div>
+          </div> */}
 
           {/* Nút Mua hàng và Thêm vào giỏ hàng */}
           <div className="flex space-x-4">
