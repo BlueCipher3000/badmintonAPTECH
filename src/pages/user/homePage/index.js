@@ -1,4 +1,5 @@
 import { memo, useState } from "react";
+import { useEffect } from "react";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { MdKeyboardArrowDown } from "react-icons/md";
 import sp_1 from "../../../assets/user/img/products/sp-1.webp";
@@ -16,64 +17,35 @@ const HomePage = () => {
   const navigate = useNavigate();
   const [favorites, setFavorites] = useState({});
   const [activeTab, setActiveTab] = useState("Sản phẩm nổi bật");
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
 
-  const products = [
-    {
-      id: 1,
-      image: sp_1,
-      name: "Vợt Cầu Lông Lining Turbo Charging Marshal",
-      price: "1.890.000 ₫",
-      colors: ["bg-black", "bg-amber-300", "bg-blue-300"],
-    },
-    {
-      id: 2,
-      image: sp_2,
-      name: "Vợt Cầu Lông Lining Turbo Charging Marshal",
-      price: "1.890.000 ₫",
-      colors: ["bg-black", "bg-amber-300", "bg-blue-300"],
-    },
-    {
-      id: 3,
-      image: sp_3,
-      name: "Vợt Cầu Lông Lining Turbo Charging Marshal",
-      price: "1.890.000 ₫",
-      colors: ["bg-black", "bg-amber-300", "bg-blue-300"],
-    },
-    {
-      id: 4,
-      image: sp_1,
-      name: "Vợt Cầu Lông Lining Turbo Charging Marshal",
-      price: "1.890.000 ₫",
-      colors: ["bg-black", "bg-amber-300", "bg-blue-300"],
-    },
-  ];
-
-  const productTabsSale = [
-    {
-      name: "Vợt Cầu Lông",
-      image:
-        "https://cdn.shopvnb.com/img/400x400/uploads/danh_muc/thumb/1.1.webp",
-      link: "#",
-    },
-    {
-      name: "Giày Cầu Lông",
-      image:
-        "https://cdn.shopvnb.com/img/400x400/uploads/danh_muc/thumb/2_1.webp",
-      link: "#",
-    },
-    {
-      name: "Giày Cầu Lông",
-      image:
-        "https://cdn.shopvnb.com/img/400x400/uploads/danh_muc/thumb/2_1.webp",
-      link: "#",
-    },
-    {
-      name: "Giày Cầu Lông",
-      image:
-        "https://cdn.shopvnb.com/img/400x400/uploads/danh_muc/thumb/2_1.webp",
-      link: "#",
-    },
-  ];
+  useEffect(() => {
+        fetch("http://localhost:8000/api/products")
+          .then((res) => res.json())
+          .then((data) => {
+            console.log("API response:", data);
+            if (Array.isArray(data)) {
+              setProducts(data);
+              console.log("setProducts is called with:", data);
+            } else {
+              console.error("Unexpected API response format:", data);
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching products:", error);
+            setProducts([]);
+          });
+      }, []);
+      
+      
+  
+    useEffect(() => {
+      fetch("http://localhost:8000/api/categories")
+        .then((response) => response.json())
+        .then((data) => setCategories(data))
+        .catch((error) => console.error("Error fetching categories:", error));
+    }, []);
 
   const discountedProducts = [
     {
@@ -185,7 +157,7 @@ const HomePage = () => {
                 )}
                 <img
                   className="w-full h-auto rounded-md hover:opacity-80 cursor-pointer"
-                  src={product.image}
+                  src={`http://localhost:8000/storage/imgproducts/${product.img}`}
                   alt={product.name}
                   onClick={() =>
                     navigate(
@@ -194,19 +166,19 @@ const HomePage = () => {
                   }
                 />
               </div>
-              <ul className="flex space-x-2 mt-2">
+              {/* <ul className="flex space-x-2 mt-2">
                 {product.colors.map((color, index) => (
                   <li
                     key={index}
                     className={`${color} p-2 w-4 h-4 rounded-full border border-gray-200`}
                   ></li>
                 ))}
-              </ul>
+              </ul> */}
               <p className="capitalize mt-2 text-sm font-medium">
                 {product.name}
               </p>
               <p className="font-bold text-lg text-gray-800">
-                {product.discount}{" "}
+                {product.sale}{" "}
                 <span className="text-sm text-gray-500 line-through">
                   {product.price}
                 </span>
@@ -252,7 +224,7 @@ const HomePage = () => {
                   )}
                   <img
                     className="w-full h-auto rounded-md hover:opacity-80 cursor-pointer"
-                    src={product.image}
+                    src={`http://localhost:8000/storage/imgproducts/${product.img}`}
                     alt={product.name}
                     onClick={() =>
                       navigate(
@@ -261,14 +233,14 @@ const HomePage = () => {
                     }
                   />
                 </div>
-                <ul className="flex space-x-2 mt-2">
+                {/* <ul className="flex space-x-2 mt-2">
                   {product.colors.map((color, index) => (
                     <li
                       key={index}
                       className={`${color} p-2 w-4 h-4 rounded-full border border-gray-200`}
                     ></li>
                   ))}
-                </ul>
+                </ul> */}
                 <p className="capitalize mt-2 text-sm font-medium">
                   {product.name}
                 </p>
@@ -309,26 +281,26 @@ const HomePage = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 my-10">
-            {productTabsSale.map((product, index) => (
+            {categories.map((category, index) => (
               <div
                 key={index}
                 className="relative overflow-hidden bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"
               >
                 <img
                   className="w-full h-64 object-cover"
-                  src={product.image}
-                  alt={product.name}
+                  src={`http://localhost:8000/storage/imgcategories/${category.img}`}
+                  alt={category.name}
                 />
                 <div className="p-4">
                   <p className="text-lg font-semibold text-center">
-                    {product.name}
+                    {category.name}
                   </p>
                 </div>
-                <a
+                {/* <a
                   href={product.link}
                   className="absolute inset-0"
                   title={product.name}
-                ></a>
+                ></a> */}
               </div>
             ))}
           </div>

@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { FaFilter, FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import {
@@ -21,47 +21,38 @@ const ProductPage = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [sortOption, setSortOption] = useState("");
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
 
-  const allProducts = [
-    {
-      id: 1,
-      image: sp_1,
-      name: "Vợt Cầu Lông Lining Turbo Charging Marshal",
-      price: 1890000,
-      date: "2024-01-01",
-      bestSeller: true,
-      colors: ["bg-black", "bg-amber-300", "bg-blue-300"],
-      category: "Vợt Cầu Lông",
-    },
-    {
-      id: 2,
-      image: sp_2,
-      name: "Vợt Cầu Lông Lining Turbo Charging Marshal",
-      price: 1890000,
-      date: "2023-12-01",
-      bestSeller: false,
-      colors: ["bg-black", "bg-amber-300", "bg-blue-300"],
-      category: "Giày Cầu Lông",
-    },
-    {
-      id: 3,
-      image: sp_3,
-      name: "Vợt Cầu Lông Lining Turbo Charging Marshal",
-      price: 1890000,
-      date: "2023-11-01",
-      bestSeller: true,
-      colors: ["bg-black", "bg-amber-300", "bg-blue-300"],
-      category: "Balo, Túi Xách",
-    },
-  ];
+  /* const allProducts = () => {
+    const [products, setProducts] = useState([]); */
 
-  const categories = [
-    { name: "Tất cả sản phẩm", icon: <GiAlliedStar /> },
-    { name: "Vợt Cầu Lông", icon: <GiTennisRacket /> },
-    { name: "Giày Cầu Lông", icon: <GiRunningShoe /> },
-    { name: "Balo, Túi Xách", icon: <GiBackpack /> },
-    { name: "Phụ Kiện", icon: <FaFilter /> },
-  ];
+    useEffect(() => {
+      fetch("http://localhost:8000/api/products")
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("API response:", data);
+          if (Array.isArray(data)) {
+            setProducts(data);
+            console.log("setProducts is called with:", data);
+          } else {
+            console.error("Unexpected API response format:", data);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching products:", error);
+          setProducts([]);
+        });
+    }, []);
+    
+    
+
+  useEffect(() => {
+    fetch("http://localhost:8000/api/categories")
+      .then((response) => response.json())
+      .then((data) => setCategories(data))
+      .catch((error) => console.error("Error fetching categories:", error));
+  }, []);
 
   const toggleFavorite = (id) => {
     setFavorites((prev) => ({
@@ -71,7 +62,8 @@ const ProductPage = () => {
   };
 
   const handleCategoryClick = (category) => {
-    setSelectedCategory(category === "Tất cả sản phẩm" ? null : category);
+    setSelectedCategory(category);
+    setCurrentPage(1);
   };
 
   const toggleFilters = () => {
@@ -82,7 +74,7 @@ const ProductPage = () => {
     setSortOption(e.target.value);
   };
 
-  const sortProducts = (products) => {
+  const sortedProducts = (products) => {
     switch (sortOption) {
       case "price-high-low":
         return [...products].sort((a, b) => b.price - a.price);
@@ -97,41 +89,53 @@ const ProductPage = () => {
     }
   };
 
-  const products = selectedCategory
-    ? allProducts.filter((product) => product.category === selectedCategory)
-    : allProducts;
+  const filteredProducts = selectedCategory && selectedCategory.id
+  ? products.filter((product) => product.category_id === selectedCategory.id)
+  : products;
 
-  const sortedProducts = sortProducts(products);
-
+  const sortedFilteredProducts = sortedProducts(filteredProducts);
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = sortedProducts.slice(
-    indexOfFirstProduct,
-    indexOfLastProduct
-  );
+  const currentProducts = sortedFilteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+  
 
   const nextPage = () => {
     setCurrentPage((prevPage) =>
-      Math.min(prevPage + 1, Math.ceil(products.length / productsPerPage))
+      Math.min(prevPage + 1, Math.ceil((filteredProducts?.length ?? 0) / productsPerPage))
     );
   };
+  
 
   const prevPage = () => {
     setCurrentPage((prevPage) => Math.max(prevPage - 1, 1));
   };
+
+  useEffect(() => {
+    console.log("Products State:", products);
+    console.log("Filtered Products:", filteredProducts);
+    console.log("Sorted & Paginated:", currentProducts);
+  }, [products, filteredProducts, currentProducts]);
+  
 
   return (
     <div className="container mx-auto mt-8 flex">
       <div className="w-1/4">
         <h2 className="text-xl font-semibold mb-4">Danh mục sản phẩm</h2>
         <ul className="space-y-2">
-          {categories.map((category, index) => (
+        <li
+            onClick={() => handleCategoryClick(null)}
+            className={`cursor-pointer p-2 rounded ${
+              selectedCategory === null ? "bg-gray-300" : "hover:bg-gray-200"
+            }`}
+          >
+            Tất cả sản phẩm
+          </li>
+          {categories.map((category) => (
             <li
-              key={index}
-              onClick={() => handleCategoryClick(category.name)}
+              key={category.id}
+              onClick={() => handleCategoryClick(category)}
               className="flex items-center space-x-2 cursor-pointer hover:bg-gray-200 p-2 rounded"
             >
-              {category.icon}
               <span>{category.name}</span>
             </li>
           ))}
@@ -163,7 +167,7 @@ const ProductPage = () => {
           </div>
         )}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {currentProducts.map((product) => (
+          {currentProducts?.map((product) => (
             <div
               key={product.id}
               className="col-span-1 bg-white shadow-md rounded-lg p-4"
@@ -185,23 +189,23 @@ const ProductPage = () => {
                 )}
                 <img
                   className="w-full h-auto rounded-md hover:opacity-80 cursor-pointer"
-                  src={product.image}
+                  src={`http://localhost:8000/storage/imgproducts/${product.img}`}
                   alt={product.name}
                   onClick={() =>
                     navigate(
-                      `${ROUTERS.USER.CHECKOUT.replace(":id", product.id)}`
+                      `${ROUTERS.USER.DETAIL.replace(":id", product.id)}`
                     )
                   }
                 />
               </div>
-              <ul className="flex space-x-2 mt-2">
+              {/* <ul className="flex space-x-2 mt-2">
                 {product.colors.map((color, index) => (
                   <li
                     key={index}
                     className={`${color} p-2 w-4 h-4 rounded-full border border-gray-200`}
                   ></li>
                 ))}
-              </ul>
+              </ul> */}
               <p className="capitalize mt-2 text-sm font-medium">
                 {product.name}
               </p>
@@ -224,9 +228,7 @@ const ProductPage = () => {
           <button
             onClick={nextPage}
             className="flex items-center space-x-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-            disabled={
-              currentPage === Math.ceil(products.length / productsPerPage)
-            }
+            disabled={currentPage === Math.ceil((filteredProducts.length || 1) / productsPerPage)}
           >
             <FaArrowRight />
             <span>Trang sau</span>
