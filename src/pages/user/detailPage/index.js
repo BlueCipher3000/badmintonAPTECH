@@ -6,6 +6,9 @@ import sp_2 from "../../../assets/user/img/products/sp-2.webp";
 import sp_3 from "../../../assets/user/img/products/sp-3.webp";
 import { AiOutlineRight } from "react-icons/ai";
 import { Link } from "react-router-dom";
+import { useCart } from "../../../context/cartContext";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const DetailPage = () => {
   const { id } = useParams();
@@ -14,6 +17,7 @@ const DetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const { addToCart } = useCart();
   
   useEffect(() => {
     if (!productId) {
@@ -35,7 +39,22 @@ const DetailPage = () => {
     });
   }, [id]);
 
-
+  const handleAddToCart = () => {
+    console.log("Product before adding:", product);
+    if (!product || !product.id) {
+      console.error("Invalid product detected:", product);
+      return;
+    }
+    addToCart({ ...product, quantity: 1 });
+    toast.success("Sản phẩm đã được thêm vào giỏ hàng!", {
+      position: "top-right",
+      autoClose: 3000, // Hide after 3 seconds
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
+  };
 
   if (loading) return <p>Loading...</p>;
   if (!product) return <p>Product not found</p>;
@@ -143,11 +162,13 @@ const DetailPage = () => {
           {/* Nút Mua hàng và Thêm vào giỏ hàng */}
           <div className="flex space-x-4">
             <Link to={"/cartPage"}>
-              <button className="bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 transition-all duration-300">
+              <button className="bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 transition-all duration-300"
+              onClick={handleAddToCart}>
                 Mua hàng
               </button>
             </Link>
-            <button className="bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-600 transition-all duration-300">
+            <button className="bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-600 transition-all duration-300"
+            onClick={handleAddToCart}>
               Thêm vào giỏ hàng
             </button>
           </div>

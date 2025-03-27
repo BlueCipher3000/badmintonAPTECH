@@ -104,7 +104,7 @@ const Header = () => {
                     </Link>
                   </li>
                   <li>
-                    <Link to="#">
+                    <Link to="CartPage">
                       <AiOutlineShoppingCart className="text-xl text-gray-600 font-light" />
                     </Link>
                   </li>
