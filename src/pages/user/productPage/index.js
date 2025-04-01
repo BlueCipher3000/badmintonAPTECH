@@ -12,6 +12,10 @@ import sp_1 from "../../../assets/user/img/products/sp-1.webp";
 import sp_2 from "../../../assets/user/img/products/sp-2.webp";
 import sp_3 from "../../../assets/user/img/products/sp-3.webp";
 import { useNavigate } from "react-router-dom";
+const getFinalPrice = (price, sale = 0) => {
+  const discount = sale ? (price * sale) / 100 : 0;
+  return price - discount;
+};
 
 const ProductPage = () => {
   const navigate = useNavigate();
@@ -27,25 +31,23 @@ const ProductPage = () => {
   /* const allProducts = () => {
     const [products, setProducts] = useState([]); */
 
-    useEffect(() => {
-      fetch("http://localhost:8000/api/products")
-        .then((res) => res.json())
-        .then((data) => {
-          console.log("API response:", data);
-          if (Array.isArray(data)) {
-            setProducts(data);
-            console.log("setProducts is called with:", data);
-          } else {
-            console.error("Unexpected API response format:", data);
-          }
-        })
-        .catch((error) => {
-          console.error("Error fetching products:", error);
-          setProducts([]);
-        });
-    }, []);
-    
-    
+  useEffect(() => {
+    fetch("http://localhost:8000/api/products")
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("API response:", data);
+        if (Array.isArray(data)) {
+          setProducts(data);
+          console.log("setProducts is called with:", data);
+        } else {
+          console.error("Unexpected API response format:", data);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching products:", error);
+        setProducts([]);
+      });
+  }, []);
 
   useEffect(() => {
     fetch("http://localhost:8000/api/categories")
@@ -89,22 +91,29 @@ const ProductPage = () => {
     }
   };
 
-  const filteredProducts = selectedCategory && selectedCategory.id
-  ? products.filter((product) => product.category_id === selectedCategory.id)
-  : products;
+  const filteredProducts =
+    selectedCategory && selectedCategory.id
+      ? products.filter(
+          (product) => product.category_id === selectedCategory.id
+        )
+      : products;
 
   const sortedFilteredProducts = sortedProducts(filteredProducts);
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = sortedFilteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
-  
+  const currentProducts = sortedFilteredProducts.slice(
+    indexOfFirstProduct,
+    indexOfLastProduct
+  );
 
   const nextPage = () => {
     setCurrentPage((prevPage) =>
-      Math.min(prevPage + 1, Math.ceil((filteredProducts?.length ?? 0) / productsPerPage))
+      Math.min(
+        prevPage + 1,
+        Math.ceil((filteredProducts?.length ?? 0) / productsPerPage)
+      )
     );
   };
-  
 
   const prevPage = () => {
     setCurrentPage((prevPage) => Math.max(prevPage - 1, 1));
@@ -115,14 +124,13 @@ const ProductPage = () => {
     console.log("Filtered Products:", filteredProducts);
     console.log("Sorted & Paginated:", currentProducts);
   }, [products, filteredProducts, currentProducts]);
-  
 
   return (
     <div className="container mx-auto mt-8 flex">
       <div className="w-1/4">
         <h2 className="text-xl font-semibold mb-4">Danh mục sản phẩm</h2>
         <ul className="space-y-2">
-        <li
+          <li
             onClick={() => handleCategoryClick(null)}
             className={`cursor-pointer p-2 rounded ${
               selectedCategory === null ? "bg-gray-300" : "hover:bg-gray-200"
@@ -210,7 +218,10 @@ const ProductPage = () => {
                 {product.name}
               </p>
               <p className="font-bold text-lg text-gray-800">
-                {product.price.toLocaleString()} ₫
+                {product.price
+                  ? getFinalPrice(product.price, product.sale ?? 0).toLocaleString() +
+                    "₫"
+                  : "N/A"}
               </p>
             </div>
           ))}
@@ -228,7 +239,10 @@ const ProductPage = () => {
           <button
             onClick={nextPage}
             className="flex items-center space-x-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-            disabled={currentPage === Math.ceil((filteredProducts.length || 1) / productsPerPage)}
+            disabled={
+              currentPage ===
+              Math.ceil((filteredProducts.length || 1) / productsPerPage)
+            }
           >
             <FaArrowRight />
             <span>Trang sau</span>
