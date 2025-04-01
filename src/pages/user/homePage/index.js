@@ -19,6 +19,9 @@ const HomePage = () => {
   const [activeTab, setActiveTab] = useState("Sản phẩm nổi bật");
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const getFinalPrice = (price, sale) => {
+    return price - (price * sale) / 100;
+  };
 
   useEffect(() => {
         fetch("http://localhost:8000/api/products")
@@ -47,40 +50,7 @@ const HomePage = () => {
         .catch((error) => console.error("Error fetching categories:", error));
     }, []);
 
-  const discountedProducts = [
-    {
-      id: 5,
-      image: sp_1,
-      name: "Vợt Cầu Lông Lining Turbo Charging Marshal",
-      price: "1.890.000 ₫",
-      discount: "1.500.000 ₫",
-      colors: ["bg-black", "bg-amber-300", "bg-blue-300"],
-    },
-    {
-      id: 6,
-      image: sp_2,
-      name: "Vợt Cầu Lông Lining Turbo Charging Marshal",
-      price: "1.890.000 ₫",
-      discount: "1.500.000 ₫",
-      colors: ["bg-black", "bg-amber-300", "bg-blue-300"],
-    },
-    {
-      id: 7,
-      image: sp_3,
-      name: "Vợt Cầu Lông Lining Turbo Charging Marshal",
-      price: "1.890.000 ₫",
-      discount: "1.500.000 ₫",
-      colors: ["bg-black", "bg-amber-300", "bg-blue-300"],
-    },
-    {
-      id: 8,
-      image: sp_1,
-      name: "Vợt Cầu Lông Lining Turbo Charging Marshal",
-      price: "1.890.000 ₫",
-      discount: "1.500.000 ₫",
-      colors: ["bg-black", "bg-amber-300", "bg-blue-300"],
-    },
-  ];
+  const discountedProducts = products.filter((product) => product.sale > 0);
 
   const toggleFavorite = (id) => {
     setFavorites((prev) => ({
@@ -178,9 +148,9 @@ const HomePage = () => {
                 {product.name}
               </p>
               <p className="font-bold text-lg text-gray-800">
-                {product.sale}{" "}
+                {getFinalPrice(product.price, product.sale).toLocaleString()}{"₫"}
                 <span className="text-sm text-gray-500 line-through">
-                  {product.price}
+                  {product.price.toLocaleString()}{"₫"}
                 </span>
               </p>
             </div>
@@ -245,7 +215,7 @@ const HomePage = () => {
                   {product.name}
                 </p>
                 <p className="font-bold text-lg text-gray-800">
-                  {product.price}
+                  {getFinalPrice(product.price, product.sale).toLocaleString()}{"₫"}
                 </p>
               </div>
             ))}

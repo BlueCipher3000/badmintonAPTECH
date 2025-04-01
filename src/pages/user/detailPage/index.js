@@ -18,6 +18,10 @@ const DetailPage = () => {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const { addToCart } = useCart();
+  const getFinalPrice = (price, sale) => {
+    return price - (price * sale) / 100;
+  };
+  
   
   useEffect(() => {
     if (!productId) {
@@ -43,6 +47,10 @@ const DetailPage = () => {
     console.log("Product before adding:", product);
     if (!product || !product.id) {
       console.error("Invalid product detected:", product);
+      return;
+    }
+    if (product.status === 0) {
+      toast.error("Sản phẩm đã hết hàng!");
       return;
     }
     addToCart({ ...product, quantity: 1 });
@@ -135,7 +143,7 @@ const DetailPage = () => {
             </div>
             <div className="mt-5">
               <span className="text-2xl font-bold text-red-500">
-                {(product.price - (product.price * product.sale / 100)).toLocaleString()}{" "}
+                {getFinalPrice(product.price, product.sale).toLocaleString()}{" "}
                 <span className="underline">đ</span>
               </span>
               <span className="text-gray-400 font-semibold ml-4">
